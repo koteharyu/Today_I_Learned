@@ -48,21 +48,49 @@
 
 ## HTTPリクエストとレスポンスの内容
 
-[![Image from Gyazo](https://i.gyazo.com/9473a151479d4439e950d535d38e4921.jpg)](https://gyazo.com/9473a151479d4439e950d535d38e4921)
+## Generalについて
+
+[![Image from Gyazo](https://i.gyazo.com/4cc04f9bccf42e86ab8096b6b7ba6b66.png)](https://gyazo.com/4cc04f9bccf42e86ab8096b6b7ba6b66)
 
 <br>
 
-- HTTPリクエスト内容
-  - メソッドはGET
-  - スキームはHTTPS
-  - Cookieも含まれている
-
-- HTTPレスポンス内容
-  - ステータスコードは、200
-  - dateは、Wed, 24 Mar 2021 10:26:53 GMT
-  - Webサーバーの種類は、nginx
+- Request URL・・・TechEssentilasのコースのリクエストを送っていることがわかる
+- Request Method・・・今回はHTTPSのGETメソッドを使用している
+- Status Code・・・200が返ってきているので、処理に成功している
 
 <br>
+
+## レスポンスヘッダーについて
+
+[![Image from Gyazo](https://i.gyazo.com/52624ab53e5368835084498d3083b31f.png)](https://gyazo.com/52624ab53e5368835084498d3083b31f)
+
+<br>
+
+TTPレスポンスの一部なので、以下の情報が含まれている
+
+- キャッシュの情報(Cash Control)
+  - 今回は、`max-age=0`なので既にキャッシュの期限が切れていると言うこと？
+- ブラウザにcookieとして保存して欲しい情報(set-cookie)
+
+<br>
+
+## リクエストヘッダーについて
+
+[![Image from Gyazo](https://i.gyazo.com/71f9422509f7f9f4b8e03a6ea32b9f05.png)](https://gyazo.com/71f9422509f7f9f4b8e03a6ea32b9f05)
+
+<br>
+
+- Webサーバーに送るためのcookieが含まれている
+
+<br>
+
+## レスポンスについて
+
+[![Image from Gyazo](https://i.gyazo.com/1626812838a7681559576c0284fc1a7b.png)](https://gyazo.com/1626812838a7681559576c0284fc1a7b)
+
+<br>
+
+HTML形式でレスポンスが返ってきていることがわかる。つまりサーバー上でRubyなどのサーバーサイド・スクリプトがHTMLへ変換されている。
 
 <br>
 
