@@ -95,3 +95,30 @@ HTML形式でレスポンスが返ってきていることがわかる。つま�
 <br>
 
 まだまだ検証ツールの見方などが身についてないので、都度確認して慣れたいと思った。
+
+<br>
+
+## フォームの送信内容について
+
+プロフィール欄を更新した際の処理
+
+<br>
+
+[![Image from Gyazo](https://i.gyazo.com/1a59a319bfcd430c9e34aa86a4d7579a.png)](https://gyazo.com/1a59a319bfcd430c9e34aa86a4d7579a)
+
+<br>
+
+[![Image from Gyazo](https://i.gyazo.com/50bca6a88e9c9a79fdb0cc138aba71d0.png)](https://gyazo.com/50bca6a88e9c9a79fdb0cc138aba71d0)
+
+<br>
+
+[![Image from Gyazo](https://i.gyazo.com/fca24fbc03c6269dc02bd38475166b8b.png)](https://gyazo.com/fca24fbc03c6269dc02bd38475166b8b)
+
+<br>
+
+- POSTメソッドが使用されている
+- status codeが302なのでリダイレクトをリクエスト側に要求している
+- Content-Lengthは、本文の長さを表す
+- Content-Typeは、サーバーに送信するリソースの種類を表します
+- POSTメソッドで送信したデータは`Form Data`で確認できる
+
