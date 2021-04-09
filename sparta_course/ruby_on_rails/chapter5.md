@@ -430,3 +430,76 @@ end
 
 <br>
 
+## タスクの詳細確認までのコード
+
+```
+require 'rails_helper'
+
+describe 'タスク管理機能', type: :system do
+  describe '一覧表示機能' do
+    let(:user_a) { FactoryBot.create(:user, name: "ユーザーA", email: "a@example.com") }
+    let(:user_b) { FactoryBot.create(:user, name: "ユーザーB", email: "b@xxample.com") }
+    let!(:task_a) { FactoryBot.create(:task, name: "最初のタスク", user: user_a) }
+
+    before do
+      visit login_path
+      fill_in "メールアドレス", with: login_user.email
+      fill_in "パスワード", with: login_user.password
+      click_button "ログインする"
+    end
+
+    context "ユーザーAでログインしている時" do
+      let(:login_user) {user_a}
+
+      it 'ユーザーAが作成したタスクが表示されること' do   # 1
+        expect(page).to have_content "最初のタスク"
+      end
+    end
+
+    context "ユーザーBでログインしている時" do
+      let(:login_user) {user_b}
+
+      it "ユーザーAが作成したタスクが表示されないこと" do
+        expect(page).not_to have_content "最初のタスク"
+      end
+    end
+
+    describe '詳細表示機能' do
+      context 'ユーザーAでログインしている時' do
+        let(:login_user) {user_a}
+
+        before do
+          visit task_path(task_a)
+        end
+
+        it 'ユーザーAが作成したタスク詳細が表示される' do  # 2
+          expect(page).to have_content "最初のタスク"
+        end
+      end
+    end
+
+  end
+end
+```
+
+<br>
+
+## shared_examples
+
+上記のコードでは、　１と2が重複しているため、よりDRYなコードにしていく
+
+`shared_examples`という仕組みがある。`example`とは、itなどの期待する挙動を示す部分のこと。このexampleをいくつかまとめて名前をつけ、テストケース間でシェアできる仕組み
+
+```
+shared_examples_for "ユーザーAが作成したタスクが表示される" do
+  it { expect(page).to have_content "最初のタスク" }
+end
+```
+
+```
+it_behaves_like 'ユーザーAが作成したタスクが表示される'
+```
+
+<br>
+
+`shared_context`とは、`before`,`let`,`let!`などの前処理に名前をつけて参照する機能。このメソッド内に共通処理を定義しておき、`include_context`メソッドでその共通処理を呼び出す。名前の付け方に気をつけよ！
