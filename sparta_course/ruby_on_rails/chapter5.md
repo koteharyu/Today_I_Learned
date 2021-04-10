@@ -503,3 +503,61 @@ it_behaves_like 'ユーザーAが作成したタスクが表示される'
 <br>
 
 `shared_context`とは、`before`,`let`,`let!`などの前処理に名前をつけて参照する機能。このメソッド内に共通処理を定義しておき、`include_context`メソッドでその共通処理を呼び出す。名前の付け方に気をつけよ！
+
+## 名称が空の場合にエラーが出る
+
+`have_selector`を使うと、HTML内の特定の要素をセレクタ(CSSセレクタ)で指定することができる。ここでは、`alert-success`というCSSクラスのついた、テキストに「新規作成のテストを書く」を含む要素があるかどうかを検査している。
+
+`within`メソッドのブロック中で`page`の内容を検査することで、探索する範囲を画面内の特定の範囲に狭めることができる。ここでは、#error_explanationというセレクタをしている。つまり`error_explanation`という`id`の要素を指定している
+
+<br>
+
+## letは上書きできる
+
+処理経路上に複数回、同じ名前の`let`を定義したときは、常に下の階層(処理順として後ろの方に)に定義したletが使われる。つまり、`letは上書きできる`ということ。`task_name`をデフォルトでは、「新規作成のテストを書く」にしておき、名称を入力したいテストケースでは、値を空文字に上書きしている
+
+```
+...
+describe '新規作成機能' do
+  let(:login_user) {user_a}
+  let(:task_name) {"新規作成のテストを書く"}　# デフォルトとして定義
+
+  before do
+    ...
+  end
+
+  context "新規作成画面で名称を入力した時" do
+    it '正常に登録される' do
+      expect(page).to have_selector ".alert-success", text: "新規作成のテストを書く"
+    end
+  end
+
+  context '新規画面で名称を入力しなかった時' do
+    let(:task_name) {""} # letの上書き
+
+    it 'エラーとなる' do
+      within "#error_explanation" do
+        expect(page).to have_content "名称を入力してください"
+      end
+    end
+  end
+  
+  end
+
+```
+
+`context '新規画面で名称を入力しなかった時' do` 内の `let(:task_name) {""}`でtask_nameのletを上書きしている
+
+ただし、letの上書きを多用すると、Specのコード行数が大きくなった時に、どのletが最終的に使われているのかわかりづらくなるデメリットがあるので、ご利用は計画的に
+
+<br>
+
+## Spec失敗時の調査方法
+
+1. modelの再チェック
+2. セレクタのチェック
+3. Specのコードをチェック
+4. コンソールからチェック
+5. スクリーンショットの活用
+
+
