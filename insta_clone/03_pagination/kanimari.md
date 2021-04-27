@@ -110,4 +110,10 @@ end
 
 <br>
 
+わかったこと！
+
+`paginate`メソッドを使いことで、`paginationクラス`が生成される
+
+<br>
+
 参照(現場Rails p.317)
