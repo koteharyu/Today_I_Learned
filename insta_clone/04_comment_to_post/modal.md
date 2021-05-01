@@ -35,6 +35,12 @@
 
 <br>
 
+## ポイント
+
+今までは、formについての理解が曖昧だったので、modalを通して投稿したり、編集したりする際にURLを意識して開発していたが、これは間違いだった。
+
+`form_with`に渡すモデルの状況・状態によってcreateアクションが対応するのか、updateアクションが対応するのか、区別することを理解できたため、自在にモーダルを使えそうだと思った。
+
 ## 参考
 
 [form_with/form_forについて](https://qiita.com/snskOgata/items/44d32a06045e6a52d11c#23-form_with-model-modela-modelb)
