@@ -199,16 +199,15 @@ relationship DELETE /relationships/:id(.:format)  relationships#destroy
 ```
 # users/_follow.html/slim
 
-= form_with model: current_user.active_relationships.build, remote: true do |f|
-  = f.hidden_field_tag :followed_id, user.id
-  = f.submit "フォロー", class: "btn btn-raised btn-outline-warning"
+= form_with url: relationships_path(followed_id: user.id), method: :post, remote: true do |f|
+  = f.submit "フォロー", class: ""btn
 ```
 
 ```
 # users/_unfollow.html.slim
 
-= form_with model: current_user.active_relationships.find_by(followed_id: user.id), method: :delete, remote: true do |f|
-  = f.submit "アンフォロー", class: "btn btn-raised btn-warning"
+= form_with url: relationship_path(current_user.active_relationships.find_by(followed_id: user.id)), method: :delete, remote: true do |f|
+  = f.submit "アンフォロー", class: "btn"
 ```
 
 ## controller
