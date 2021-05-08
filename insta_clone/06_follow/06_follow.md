@@ -32,14 +32,14 @@ AがBをフォローしているが、BはAをフォローしていない場合�
 # migraton_file
 
 def change
- create_table :relationships do |t|
-   t.integer :follower_id, null: false
-   t.integer :followed_id, null: false
-   t.timestamps
- end
- add_index :relationships, :follower_id
- add_index :relationships, :followed_id
- add_index :relationships, [:followed_id, :follower_id], unique: true
+create_table :relationships do |t|
+  t.integer :follower_id, null: false
+  t.integer :followed_id, null: false
+  t.timestamps
+end
+add_index :relationships, :follower_id
+add_index :relationships, :followed_id
+add_index :relationships, [:followed_id, :follower_id], unique: true
 end
 ```
 
@@ -79,6 +79,8 @@ belogng_to :followed, class_name: "User"
 ```
 
 `class_name`を使用し、存在しない、follower, followedクラスを参照することを防ぐ
+
+`Relationship.first.followed`のような書き方ができるようになり、idが一番若いrelationshipsテーブルのレコードのfollowed_idと同じidを持つユーザーを返す記述(メソッド)が使えるようになる
 
 ```
 # models/user
@@ -154,15 +156,15 @@ user.following.delete(other_user) #=> userがother_userをフォローしてい�
 models/user.rb
 
 def follow(other_user)
- following << other_user
+following << other_user
 end
 
 def unfollow(other_user)
- active_relationships.find_by(followed_id: other_user.id).destroy
+active_relationships.find_by(followed_id: other_user.id).destroy
 end
 
 def following?(other_user)
- following.include?(other_user)
+following.include?(other_user)
 end
 ```
 
@@ -179,12 +181,12 @@ end
 
 # ユーザーの作成
 50.times do |n|
- User.create!(
-   name: "#{n}user",
-   email: "#{n}user@example.com",
-   password: "password",
-   password_confirmation: "password"
- )
+User.create!(
+  name: "#{n}user",
+  email: "#{n}user@example.com",
+  password: "password",
+  password_confirmation: "password"
+)
 end
 
 # フォローしてみる
@@ -219,11 +221,11 @@ relationship DELETE /relationships/:id(.:format) relationships#destroy
 # users/_follow_area.html.slim
 
 - if logged_in? && current_user.id != user.id
- div id="follow_area-#{user.id}"
-   - if current_user.follow?(user)
-     = render "unfollow", user: user
-   - else
-     = render "follow", user: user
+div id="follow_area-#{user.id}"
+  - if current_user.follow?(user)
+    = render "unfollow", user: user
+  - else
+    = render "follow", user: user
 ```
 
 `logged_in?`で、ログインしていることを大前提に
@@ -232,7 +234,7 @@ relationship DELETE /relationships/:id(.:format) relationships#destroy
 # users/_follow.html.slim
 
 = form_with url: relationships_path(followed_id: user.id), method: :post, remote: true do |f|
- = f.submit "フォロー", class: "btn btn-raised btn-outline-warning"
+= f.submit "フォロー", class: "btn btn-raised btn-outline-warning"
 ```
 
 パスの引数として、誰をフォローするかとしてfollowed_idが必要
@@ -241,7 +243,7 @@ relationship DELETE /relationships/:id(.:format) relationships#destroy
 # users/unfollow.html.slim
 
 = form_with url: relationship_path(current_user.active_relationships.find_by(followed_id: user.id)), method: :delete, remote: true do |f|
- = f.submit "アンフォロー", class: "btn btn-raised btn-warning"
+= f.submit "アンフォロー", class: "btn btn-raised btn-warning"
 ```
 
 DELETEリクエストを送るrelationship_pathの引数として、アンフォローするユーザーのIDが必要になる。
@@ -258,19 +260,20 @@ models/userにて定義したメソッドをフル活用
 # relationships_controller.rb
 
 def create
- @user = User.find(params[:followed_id])
- current_user.follow(@user)
+@user = User.find(params[:followed_id])
+current_user.follow(@user)
 end
 
 def destroy
- @user = Relatioship.find(params[:id]).followed
- current_user.unfollow(@user)
+@user = Relatioship.find(params[:id]).followed
+current_user.unfollow(@user)
 end
 ```
 
-`Relatioship.find(params[:id]).followed`の記述を言語化するとこんな感じだろうか？
+`@user = Relatioship.find(params[:id]).followed`について
 
-DELETE時に生成されるURLは`/relationships/:id`であるため、`params[:id]`にてRelationshipのidを取得し、そのIDレコードのfollowed_idのユーザー情報を@userに代入しているのか??
+params[:id]で取得したidレコードのfollowed_idと同じidを持つユーザー情報を@userに格納している
+
 
 <br>
 
@@ -301,10 +304,10 @@ relationships_controllerのcreate/destroyのアクションにて@userを渡し�
 1. ユーザー一覧画面/詳細画面を実装すること
 2. 投稿一覧画面右にあるユーザー一覧については登録日が新しい順に5件分表示してください
 3. 投稿一覧画面について
-   1. ログインしている場合
-      1. フォローしているユーザーと自分の投稿だけ表示させること
-   2. ログインしていない場合
-      1. 全ての投稿を表示させること
+  1. ログインしている場合
+     1. フォローしているユーザーと自分の投稿だけ表示させること
+  2. ログインしていない場合
+     1. 全ての投稿を表示させること
 4. 一件もない場合は『投稿がありません』と画面に表示させること
 
 <br>
@@ -315,7 +318,7 @@ relationships_controllerのcreate/destroyのアクションにて@userを渡し�
 # users_controller
 
 def index
-  @users = User.all.page(params[:page]).order(created_at: :desc)
+ @users = User.all.page(params[:page]).order(created_at: :desc)
 end
 ```
 
@@ -329,9 +332,9 @@ end
 # users/_user.html.slim
 
 .user.mb-3.d-flex.justify-content-between
-  = link_to user_path(user) do
-    = image_tag 'profile-placeholder.png', size: '40x40', class: 'rounded-circle mr-1'
-    = render 'follow_area', user: user
+ = link_to user_path(user) do
+   = image_tag 'profile-placeholder.png', size: '40x40', class: 'rounded-circle mr-1'
+   = render 'follow_area', user: user
 ```
 
 user_pathに渡しているuserは、index.html.slim内で渡された変数
@@ -362,7 +365,7 @@ scope :recent, -> (count) { order(created_at: :desc).limit(count) }
 # posts_controller
 
 def index
-  @users = User.recent(5)
+ @users = User.recent(5)
 end
 ```
 
@@ -374,15 +377,15 @@ end
 # posts_controller
 
 def index
-  @posts = if current_user
-             my_posts = current_user.posts
-             following_user_posts = []
-             current_user.following.each do |user|
-               following_user_posts.push(user.posts)
-             end
-             my_posts + following_user_posts
-           end
-  @users = User.recent(5)
+ @posts = if current_user
+            my_posts = current_user.posts
+            following_user_posts = []
+            current_user.following.each do |user|
+              following_user_posts.push(user.posts)
+            end
+            my_posts + following_user_posts
+          end
+ @users = User.recent(5)
 end
 ```
 
@@ -400,12 +403,12 @@ end
 # posts_controller.rb
 
 def index
-  if current_user
-    ...
-  else
-    @posts = Post.all.includes(:user).page(params[:page]).order(created_at: :desc)
-  end
-  @users = User.recent(5)
+ if current_user
+   ...
+ else
+   @posts = Post.all.includes(:user).page(params[:page]).order(created_at: :desc)
+ end
+ @users = User.recent(5)
 end
 ```
 
@@ -430,41 +433,23 @@ posts/index.html.slim内にて、@postsが存在するかどうか(present?)を�
 ```
 # models/user
 
-# followしているユーザーのpostsを取得するメソッド
+# 自分自身とfollowしているユーザーのpostsを取得するメソッド
 def feed
-  Post.where(user_id: following_ids << id)
+ Post.where(user_id: following_ids << id)
 end
 ```
+
+`<< id`によって、自分自身のidをfollowing_ids配列内にプッシュすることで実現させている
 
 ```
 # posts_controller
 
 def index
-  @posts = current_user.feed
+ @posts = current_user.feed
 end
 ```
 
 とすることで、自分とフォロー中のユーザーの投稿のみを取得することができる
-
-<br>
-
-## 疑問
-
-- Relationship.find(params[:id]).followed
-- Post.where(user_id: following_ids << id)
-
-<br>
-
-### Relationship.find(params[:id]).followed
-
-DELETE時に生成されるURLは`/relationships/:id`であるため、`params[:id]`にてRelationshipのidを取得し、そのIDが含まれるレコードのfollowed_idのユーザー情報を@userに代入しているのでしょうか?
-
-<br>
-
-### Post.where(user_id: following_ids << id)
-
-この記述は、models/userに記述しているため、`<< id`は、current_userのidを指しており、following_idsにcurrent_userのidも追加することで、current_userとフォロー中のユーザーの投稿を取得することができていると考えていますが、いかがでしょうか？？
-
 
 <br>
 
