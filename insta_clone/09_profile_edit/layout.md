@@ -6,7 +6,7 @@ namespace/mypages_controllerとnamespace/base_controllerを作成した上、nam
 # namespace/base_controller
 
 class Mypage::BaseController < ApplicationController
-  layout 'mypages'
+  layout 'mypage'
 end
 ```
 
@@ -24,7 +24,7 @@ layout `XXX`とすることで、コントローラーやアクション毎に�
 
 特定のコントローラーに含まれるアクションから呼び出されるテンプレートに指定したレイアウトを設定したい場合は、`app/views/layouts/コントローラー名.html.slim`というファイルを作成する
 
-今回の例でいうと、`app/views/layouts/mypages`ファイルを作成しておくと、自動的に適用される
+今回の例でいうと、`app/views/layouts/mypage`ファイルを作成しておくと、自動的に適用される
 
 <br>
 
