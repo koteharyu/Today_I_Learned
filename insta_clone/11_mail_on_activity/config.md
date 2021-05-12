@@ -40,3 +40,9 @@ default_url_options:
 ## ちなみに
 
 `config/initializers/config.rb`を編集することで`Setting`という名前を変更できる
+
+[config](https://github.com/rubyconfig/config)
+
+[「config」gemを使って定数管理をおこなう方法](http://vdeep.net/rubyonrails-config-gem)
+
+[定数は、config gemで管理しましょう](https://qiita.com/beanbeenzou/items/87fb89f73e1b9e6490e1)
