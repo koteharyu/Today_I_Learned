@@ -1,1 +1,0 @@
-[layouts](https://qiita.com/sibakenY/items/ea0689e0305bf1511566)
