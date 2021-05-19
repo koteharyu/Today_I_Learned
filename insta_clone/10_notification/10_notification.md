@@ -19,11 +19,15 @@
 - ポリモーフィック関連を使っての実装
 - ヘッダー部分の通知リストには最新の10件しか表示しないこと
 
+[ダッグタイピングについて](https://github.com/koteharyu/TIL/blob/main/insta_clone/10_notification/duck_typing.md)
+
+[polymorphicについて](https://github.com/koteharyu/TIL/blob/main/insta_clone/10_notification/polymorphic.md)
+
 <br>
 
-## miketaさん
+## お断り
 
-今回は、みけたさんの実装をフルに参考にさせて頂いております。
+今回はmiketaさんの実装を大いに参考にさせて頂きました。
 
 ## 実装の流れ
 
@@ -39,8 +43,8 @@
 
 Notificationモデルに必要なカラムについて
 
-- `noticeable_type`...polymorphic: trueとすることで、自動的に作成されるカラム。関連付をするテーブル名(クラス)を格納するためのカラム
-- `noticeable_id`...polymorphic: trueとすることで、自動的に作成されるカラム。関連付を行ったレコードのidを格納するためのカラム
+- `noticeable_type`...noticeable:references{polymorphic}とすることで、自動的に作成されるカラム。関連付をするテーブル名(クラス)を格納するためのカラム
+- `noticeable_id`...noticeable:refeneces{polymorphic}とすることで、自動的に作成されるカラム。関連付を行ったレコードのidを格納するためのカラム
 - `user_id`...通知先のuser_idを格納するためのカラム
 - `read`...既読・未読を判定するためのカラム。boolean, default: false
 
@@ -58,12 +62,9 @@ class CreateNotification < ActiveRecord::Migration
 
      t.timestamps
    end
-   add_index :notifications, [:noticeable_type, :noticeable_id]
  end
 end
 ```
-
-デフォルトだと、`t.references :noticeable, polymorphic: true, foreign_key: true`となっているが、そもそもnoticeableテーブルは無いため怒られる。`foreign_key: true`は削除
 
 <br>
 
@@ -171,7 +172,7 @@ class Mypage::NotificationsController < Mypage::BaseController
 end
 ```
 
-Mypage::BaseControllerを継承することに注意。09_profile_editでも記述しているが、この継承により`requrie_login`や`layout 'mypage'`も継承されている
+Mypage::BaseControllerを継承することに注意。[09_profile_edit](https://github.com/koteharyu/TIL/blob/main/insta_clone/09_profile_edit/09_profile_edit.md#mypagebase_controller)でも記述しているが、この継承により`requrie_login`や`layout 'mypage'`も継承されている
 
 後述するが、recentメソッドはmodels/userで定義したやり方とほぼ一緒。
 
@@ -191,9 +192,9 @@ class ReadsController < ApplicationController
 end
 ```
 
-ここで登場する`read!`とか`unread?`メソッドが使えるようにするには、models/notificationにてenumを定義する必要がある
+ここで登場する`read!`とか`unread?`メソッドが使えるようにするには、models/notificationにて`enum`を定義する必要がある
 
-appropiate_pathについても同様にmodels/notificationにて定義する。ちなみにこれが、ダッグタイピング(models/likeとmodels/relationshipにも定義するする必要あり)
+appropiate_pathについても同様にmodels/notificationらにて定義する。ちなみにこれが、ダッグタイピング(models/likeとmodels/relationshipにも定義するする必要あり)
 
 後述
 
@@ -204,7 +205,7 @@ appropiate_pathについても同様にmodels/notificationにて定義する。�
 
 つまり、Notificationオブジェクトは、ポリモーフィック関連したオブジェクトであるCommentオブジェクト, Likeオブジェクト, Relationshipオブジェクトが生成された際に連動して生成されるようにする必要がある
 
-各コントローラーのcreateアクション内にそれぞれ記述する方法もあるが、ファットコントローラーになりやすくまた、重複が発生しDRYでは泣くなるため、今回は各モデルのコールバックで実装することにする
+各コントローラーのcreateアクション内にそれぞれ記述する方法もあるが、ファットコントローラーになりやすくまた、重複が発生しDRYではなくなるため、今回は各モデルのコールバックで実装することにする
 
 今回使用するコールバックメソッドは`after_create_commit`。これは`after_commit`のエイリアスであり、レコードが保存・削除される度に、トランザクションがデータベースにcommitされた後で呼び出されるコールバックメソッドである(今回はcreateに限定)
 
@@ -212,7 +213,7 @@ appropiate_pathについても同様にmodels/notificationにて定義する。�
 
 よって、`after_create_commit`コールバックメソッドは正常なデータへの変更が反映された後に実行されるということ
 
-名前を`create_notifications`として、Comment, Like, Relationship modelにそれぞれ定義する
+コールバックメソッド名を`create_notifications`として、Comment, Like, Relationship modelにそれぞれ定義する
 
 ```
 # models/Comment
@@ -260,7 +261,7 @@ end
 
 ## scopeの定義　通知を10件表示させるため
 
-指定した件数の通知を新しいものから取得するためにscoepを定義する。models/userで定義したものとほとんど同じ
+指定した件数の通知を新しいものから取得するためにscoepを定義する。models/userで定義したものとほとんど同じ。これを定義することで、`current_user.notifications.recent(10)` #=> current_userに届いた最新の通知10件を取得できるようになる
 
 ```
 # models/notification
@@ -284,7 +285,7 @@ readカラムは`default: false`を指定しているため、値がfalseであ�
 
 また、以上のenum定義により、`read!`メソッドも使えるようになり、これだけでreadの値をtrueに変更することができる。(.update(read: true)と同じ挙動)
 
-[about enum](https://github.com/koteharyu/TIL/blob/main/insta_clone/10_notification/enum.md)
+[enumについて](https://github.com/koteharyu/TIL/blob/main/insta_clone/10_notification/enum.md)
 
 <br>
 
@@ -337,13 +338,18 @@ nav.navbar.navbar-expand-lg.navbar-light.bg^white
            = render 'shared/unread_badge'
          #header-notifications.dropdown-menu.dropdown-menu-right.m-0.p-0 aira-labelledby="dropdownMenuButton"
            = render 'shared/header_notifications'
+     li.nav-item
+       = link_to user_path(current_user), class: "nav-link" do
+         = icon 'far', 'user', class: "fa-lg"
+     li.van-item
+       = link_to "ログアウト", logout_path, method: :delete, class: "nav-link"
 ```
 
-[今回使用したBootstrapについてはこちら](https://github.com/koteharyu/TIL/blob/main/insta_clone/10_notification/bootstrap.md)
+[bootstrap deopdownについて](https://github.com/koteharyu/TIL/blob/main/insta_clone/10_notification/bootstrap.md)
 
 ### shared/_unread_badge
 
-このパーシャルは、未読の通知数をハートアイコンの右上に表示させるためのパーシャル。もし未読の通知があれば表示させるため
+このパーシャルは、未読の通知数をハートアイコンの右上に表示させるためのパーシャル。もし未読の通知があれば通知の件数を表示させる
 
 ```
 - if current_user.notifications.unread.count > 0
@@ -352,6 +358,8 @@ nav.navbar.navbar-expand-lg.navbar-light.bg^white
 ```
 
 `unread`メソッドはenumで定義したから使えることに注意
+
+ちなみに、[badgeクラスもbootstrapのためのクラス](https://getbootstrap.jp/docs/4.3/components/badge/)
 
 ### shared/_header_notifications
 
@@ -372,7 +380,6 @@ models/notificaitonで定義した`call_appropiate_partial`がここで活きて
 
 `#{notificaiton.call_appropiate_partial}`とすることで、「noticeable_typeの中身が`Comment`であれば、`commented_to_own_post`をrenderさせる・`Like`であれば、`liked_to_own_post`をrenderさせる・`Relationship`であれば、`followed_me`をrenderさせる」という複雑な処理をダックタイピングで単純化させることができる
 
-
 <br>
 
 ### shared/_commented_to_own_post
@@ -392,7 +399,7 @@ models/notificaitonで定義した`call_appropiate_partial`がここで活きて
    = link_to "コメント", post_path(notification.noticeable.post, anchoe: "commet-#{notification.noticeable.id}")
  | しました
  .ml-auto
-   = l notification.create_at, format: :short
+   = l notification.created_at, format: :short
 ```
 
 この通知をクリックすると未読から既読にする処理を行いため、readというresourceのcreateアクションにアクセスするよう指定。また、既読であれば薄暗い背景色にするため、`read`クラスを付与。(ここの書き方なんか好きです。)
@@ -450,12 +457,12 @@ shortには、formatオプションにshortが指定されたときに表示す�
 
 ```
 = link_to notification_read_path(notification), class: "dropdown-item border-bottom #{'read' if notification.read?}", method: :post do
- = image_tag notification.notifiable.follower.avatar.url, class: 'rounded-circle mr-1', size: '30x30'
+ = image_tag notification.notifiable.followed.avatar.url, class: 'rounded-circle mr-1', size: '30x30'
  object
    = link_to notification.noticeable.followed.name, user_path(notification.noticeable.followed)
  | があなたをフォローしました
  .ml-auto
-   = l notification.create_at, format: :short
+   = l notification.created_at, format: :short
 ```
 
 `followed`メソッドが使えるのは、models/relationshipに定義したからで、フォローしてきた相手の情報を取得することができる
@@ -476,9 +483,11 @@ def create
 end
 ```
 
-他のユーザーからのnotificationsの更新を防ぐため`current_user.notifications`とする
+他のユーザーからのnotificationsの更新を防ぐため`current_user.notifications`から検索をかける
 
-`read!`メソッドはenumで定義したから使えるメソッドで、未読であれば既読にするロジック(update(read: true))
+`read?`, `unread?`メソッドはenumで定義されたメソッド
+
+`read!`メソッド...未読であれば既読にするロジック(update(read: true))を行う
 
 次に、`.appropiate_path`メソッドを使えるようにするために、models/notificationを編集する
 
@@ -486,7 +495,6 @@ end
 
 ```
 include Rails.application.routes.url_helpers
-
 
 def call_appropiate_partial
  case self.notifiable_type
@@ -510,9 +518,9 @@ def appropiate_path
 end
 ```
 
-まずは、このクラス内のクラスメソッドでURLヘルパーパスが使えるようにするために、`Rails.application.routes.url_helper`を`include`する
+まずは、このクラス内でURLヘルパーパスが使えるようにするために、`Rails.application.routes.url_helpers`を`include`する
 
-コメントされた場合といいねされた場合はposts/showへ、フォローされた場合はusers/showへリダイレクトさせる必要があるため独自メソッドを実装する
+コメントされた場合といいねされた場合はposts/showへ、フォローされた場合はusers/showへリダイレクトさせる
 
 <br>
 
@@ -569,7 +577,7 @@ end
 ```
 
 ```
-# mypage/notifications/index
+# mypage/notifications/index.html.slim
 
 - if @notifications.present?
  - @notifications.each do |notification|
@@ -605,7 +613,7 @@ li
 include Rails.application.routes.url_helpers
 
 def call_appropiate_partial
- case self.notifiable_type
+ case self.noticeable_type
  when "Comment"
    "commented_to_own_post"
  when "Like"
@@ -616,13 +624,13 @@ def call_appropiate_partial
 end
 
 def appropiate_path
- case self.notifiable_type
+ case self.noticeable_type
  when "Comment"
-   post_path(self.notifiable.post, anchor: "comment-#{notifiable.id}")
+   post_path(self.noticeable.post, anchor: "comment-#{noticeable.id}")
  when "Like"
-   post_path(self.notifiable.post)
+   post_path(self.noticeable.post)
  when "Relationship"
-   user_path(self.notifiable.follower)
+   user_path(self.noticeable.follower)
  end
 end
 ```
@@ -640,14 +648,14 @@ def call_appropiate_partial
 enb
 
 def appropiate_path
- noticieable.resource_path
+ noticeable.resource_path
 end
 ```
 
 ```
 # models/comment
 
-# 逆にこれら3つのモデル内でURLヘルパーを使えるようにしたいので
+# 逆にこれら3つのモデル内でURLヘルパーを使えるようにしたいのでinclude
 include Rails.application.routes.url_helpers
 
 def partial_name
@@ -693,17 +701,17 @@ end
 
 Comment, Like, Relationship3つのモデル内で重複している箇所がちらほらとあるため、DRYの原則に従いモジュール化(共通化)しようと思う。
 
-- include Rails.application.routes/url_helpres
-- has_many :notifications, as: :noticeable
+- include Rails.application.routes.url_helpres
+- has_one :notification, as: :noticeable
 - after_create_commit :create_notifications
 
 ### module化する際に必要なこと
 
-モジュール内に`ActiveSupport::Concern`をextendする
+モジュール内に`ActiveSupport::Concern`
+
+[includeとextendの違い・includedについて](https://github.com/koteharyu/TIL/blob/main/insta_clone/10_notification/include_extend.md)
 
 module内で定義したメソッドを使うためには、そのメソッドを利用したいクラス内でそのメソッドをincludeする必要がある。しかし、includeできるのはインスタンスメソッドのみなので`ActiveSupport::Concern`をextendする必要がある。
-
-ActiveSupport::Concern`をextendすることによって、コールバックメソッドや一般的なクラスメソッドが使えるようになる認識
 
 ### raise NotImplementedError
 
@@ -721,8 +729,8 @@ module Noticeable
 
  include Rails.application.routes.url_helpers
 
- include do
-   has_many :notifications, as: :noticeable
+ included do
+   has_one :notification, as: :noticeable
    after_create_commit :create_notifications
  end
 
@@ -747,7 +755,7 @@ end
 
 ```
 class Notification < ApplicationRecord
- belongs_to :notifications, polymorhic: true
+ belongs_to :noticeable, polymorpich: true
  belongs_to :user
 
  scope :recent, -> (count) { order(created_at: :desc).limit(count) }
@@ -819,7 +827,7 @@ class Relationship < ApplicationRecord
 
  validates :followed_id, presence: true
  validates :follower_id, presence: true
- validates :follower_id, uniqueness: { scope: :followed_id}
+ # validates :follower_id, uniqueness: { scope: :followed_id}
 
  def partial_name
    "followed_me"
