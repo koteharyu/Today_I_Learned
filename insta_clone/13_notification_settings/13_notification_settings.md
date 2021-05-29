@@ -126,10 +126,7 @@ nav
 
 生成されるHTML
 
-```
-# 生成されるHTML
-
-```
+[![Image from Gyazo](https://i.gyazo.com/a272f1d2d3d9d3dc714a88c1341e38bc.png)](https://gyazo.com/a272f1d2d3d9d3dc714a88c1341e38bc)
 
 ## ja.ymlの編集
 
