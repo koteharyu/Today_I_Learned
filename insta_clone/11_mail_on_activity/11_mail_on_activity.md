@@ -46,9 +46,9 @@ config.action_mailer.default_url_options = Settings.default_url_options.to_h
 
 `to_h`...hashに変換するメソッド。{host: "localhost:3000"}のようなハッシュに変換させて使う
 
-### letter_opner_web 導入
+### letter_opeer_web 導入
 
-[letter_opner_web...railsの開発環境で送信したメールをブラウザで簡単に確認するためのgem]()。developmentグループ内に追記するのがベター
+[letter_opener_web...railsの開発環境で送信したメールをブラウザで簡単に確認するためのgem]()。developmentグループ内に追記するのがベター
 
 ```
 # Gemfile
@@ -172,7 +172,7 @@ p= "#{@user_from.name}さんがあなたをフォローしました"
 def create
  @comment = current_user.comments.build(comment_params)
  @comment.save
- UserMailr.with(user_from: current_user, user_to: @comment.post.user, comment: @comment).comment_post.delivery_later
+ UserMailr.with(user_from: current_user, user_to: @comment.post.user, comment: @comment).comment_post.deliver_later
 end
 ```
 
@@ -182,7 +182,7 @@ end
 def create
  @post = Post.find(params[:post_id])
  current_user.like(@post)
- UserMailer.with(user_from: current_user, user_to: @post.user, post: @post).like_post.delibery_later
+ UserMailer.with(user_from: current_user, user_to: @post.user, post: @post).like_post.deliver_later
 end
 ```
 
@@ -192,7 +192,7 @@ end
 def create
  @user = User.find(params[:user_id])
  current_user.follow(@user)
- UserMailer.with(user_from: current_user, user_to: @user).follow.delivery_later
+ UserMailer.with(user_from: current_user, user_to: @user).follow.deliver_later
 end
 ```
 
@@ -205,6 +205,12 @@ end
 メールが送信されるアクションを行った後、`localhost:3000/letter_opener`にアクセスすると、letter_opener_webのダッシュボードに行き、そこでメールの確認ができる
 
 <br>
+
+[![Image from Gyazo](https://i.gyazo.com/9eef463131124fcc3818050d68572559.png)](https://gyazo.com/9eef463131124fcc3818050d68572559)
+
+[![Image from Gyazo](https://i.gyazo.com/a0c55249c5b30b1e2d29785db8d108ce.png)](https://gyazo.com/a0c55249c5b30b1e2d29785db8d108ce)
+
+[![Image from Gyazo](https://i.gyazo.com/b8fcec5ad0eab2b2044e9cde2315aa3f.png)](https://gyazo.com/b8fcec5ad0eab2b2044e9cde2315aa3f)
 
 ## もしだっぐタイピングをするなら...
 
