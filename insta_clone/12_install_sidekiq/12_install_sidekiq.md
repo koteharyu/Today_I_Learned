@@ -40,7 +40,7 @@ redisとは...メモリ上で動作するキーバリューストア型のNoSQL�
 
 [`sidekiq`](https://github.com/mperham/sidekiq)...バックグラウンドジョブを動作させるためのフレームワーク。Rubyが動作する環境であればActiveJobを使わなくてもsidekiqは利用できるとのこと
 
-### actibejobのアダプタとしてsidekiqを利用する
+### activejobのアダプタとしてsidekiqを利用する
 
 ActiveJobは、キューバックエンドである`sikdekiq`に接続するためのアダプタがビルトインされているため簡単に接続ができる。そうすることで、Railsが停止してもジョブが失われないようにする
 
@@ -97,7 +97,7 @@ end
 
 最後に`default`, `mailers`の設定を行う
 
-`$ bundle exec sidekiq -C config/sidekiq.yml`コマンドでsidekiq.ymlファイルを作成ｓ、以下の内容に編集する[設定参考](https://github.com/mperham/sidekiq/wiki/Advanced-Options)
+`config/sidekiq.yml`ファイルを作成し、以下の内容に編集する[設定参考](https://github.com/mperham/sidekiq/wiki/Advanced-Options)
 
 ```
 # config/sidekiq.yml
@@ -111,20 +111,22 @@ queues:
   - mailers
 ```
 
+上記の設定ファイルを作成することで、`bundle exec sidekiq -C config/sidekiq.yml`コマンドでも、`$ bundle exec sidekiq -q default -q mailers`と同じ意味合いで起動させることができるようになる
+
 ## Sidekiqのダッシュボードからジョブの確認・削除を行う
 
-Sidekiqには、ジョブの処理状況をGUIで確認できるインターフェースが備わっている。そのインターフェースは`sinatora`で動いているため、`sinatora`のインストールが必要
+Sidekiqには、ジョブの処理状況をGUIで確認できるインターフェースが備わっている。そのインターフェースは`sinatra`で動いているため、`sinatra`のインストールが必要
 
 ```
 # Gemfile
 
 gem 'sidekiq'
-gem 'sinatora'
+gem 'sinatra'
 ```
 
 `$ bundle install`
 
-次に、routes.rbにsidekiqのインターフェースをマウントする。letter_opener_webを似ている
+次に、routes.rbにsidekiqのインターフェースをマウントする。letter_opener_webと似ている
 
 ```
 # routes.rb
@@ -143,6 +145,8 @@ end
 sidekiqのダッシュボードはsinatoraで動作しているため、ダッシュボードにアクセスしてからRailsに戻ると、セッションが失効し、ログオフした状態になってしまう。この問題を解決するために、RailsとRedisと2つのサーバーを起動しておけばいいとのこと
 
 <br>
+
+[![Image from Gyazo](https://i.gyazo.com/6bb73cae35ff197fdc86561db7e560ac.jpg)](https://gyazo.com/6bb73cae35ff197fdc86561db7e560ac)
 
 [miketaさん](https://github.com/miketa-webprgr/TIL/blob/master/11_Rails_Intensive_Training/12_issue_note.md)
 
