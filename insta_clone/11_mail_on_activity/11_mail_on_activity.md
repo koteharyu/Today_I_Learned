@@ -54,19 +54,40 @@ config.action_mailer.default_url_options = Settings.default_url_options.to_h
 # Gemfile
 
 group :development do
- gem 'letter_opner_web'
+ gem 'letter_opener_web'
 end
 ```
 
-`/letter_opner`というパスで確認できるようにするために、`LetterOpnerWeb::Engine`をroutes.rbにマウントする
+`/letter_opener`というパスで確認できるようにするために、`LetterOpenerWeb::Engine`をroutes.rbにマウントする
 
 ```
 # routes.rb
 
 //一番最後の行に
 
-mount LetterOpnerWeb::Engine, at: '/letter_opener' if Rails.env.development?
+mount LetterOpenerWeb::Engine, at: '/letter_opener' if Rails.env.development?
 ```
+
+以下の設定をする
+
+```
+# config/environments/development
+
+config.action_mailer.delivery_method = :letter_opener_web
+```
+
+`delivery_method`は、メールの送信手段を設定するオプションのこと。[Railsガイド参照](https://railsguides.jp/action_mailer_basics.html#action-mailer%E3%82%92%E8%A8%AD%E5%AE%9A%E3%81%99%E3%82%8B)
+
+## 詰まった点
+
+letter_opener_webの設定をconfig/envrionments/development.rb内に記述する際に、`config.action_mailer.perform_deliveries = true`を記述するとうまく`rails-ujs`が機能しなかったため、削除した。
+
+`perform_deliveries`とは公式曰く
+
+> Mailのメッセージにdeliverメソッドを実行したときに実際にメール配信を行なうかどうかを指定します。デフォルトでは配信が行われます。機能テストなどで配信を一時的にオフにしたい場合に便利です。
+
+とのこと。今回はメール送信時に`deliver_later`メソッドを使っているが、この設定をしないままでもletter_opener内で作成されたメールを確認できたため良いのか？
+
 
 ## ActionMailerの実装
 
