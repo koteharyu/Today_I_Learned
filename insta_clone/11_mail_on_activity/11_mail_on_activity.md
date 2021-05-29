@@ -15,13 +15,15 @@
 
 ### config 導入
 
-[`config`...Yaml形式で定数を管理することができるgemのこと。]()
+[`config`...Yaml形式で定数を管理することができるgemのこと。](https://github.com/koteharyu/TIL/blob/main/insta_clone/11_mail_on_activity/config.md)
 
 ```
 # Gemfile
 
 gem 'config'
 ```
+
+`$ bundle exec rails g config:install`コマンドで必要なファイルを生成
 
 後述するletter_opner_webで使用する定数の定義を行う
 
@@ -32,14 +34,14 @@ default_url_options:
  host: 'localhost:3000'
 ```
 
-`Setting.default_url_options.host`とすることで`'localhost:3000'`が返ってくる
+`Settings.default_url_options.host`とすることで`'localhost:3000'`が返ってくる
 
 ActionMailerのviewファイル作成の際に、urlを簡単に設定できるようにhostを定義する
 
 ```
 # config/environments/development.rb
 
-config.action_mailer.default_url_options = Setting.default_url_options.to_h
+config.action_mailer.default_url_options = Settings.default_url_options.to_h
 ```
 
 `to_h`...hashに変換するメソッド。{host: "localhost:3000"}のようなハッシュに変換させて使う
@@ -70,7 +72,7 @@ mount LetterOpnerWeb::Engine, at: '/letter_opener' if Rails.env.development?
 
 ### ApplicationMailerの編集
 
-[調べたこと]()
+[ActionMailerについて](https://github.com/koteharyu/TIL/blob/main/insta_clone/11_mail_on_activity/action_mailer.md)
 
 `$ rails g mailer UserMailer`コマンドでメイラーを生成
 
