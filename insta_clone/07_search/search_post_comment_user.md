@@ -65,8 +65,8 @@ memberでなくcollectionを採用した理由は、検索時のリクエスト�
 # models/post
 
 scope :post_like, -> (post_body) { where('body LIKE ?', "%#{post_body}%")}
-scope :comment_like, -> (comment_body) { joins(:comment).where('comments.body LIKE ?', "%#{comment_body}%")}
-scope :user_like, -> (user_name) { joins(:user).where('user.name LIKE ?', "%#{user_name}%")}
+scope :comment_like, -> (comment_body) { joins(:comments).where('comments.body LIKE ?', "%#{comment_body}%")}
+scope :user_like, -> (user_name) { joins(:user).where('name LIKE ?', "%#{user_name}%")}
 ```
 
 ここで大事になるのが、`主語はPost`であること！ comment_like, user_likeに関して解説すると、`joins`メソッドを使ってPostモデルにそれぞれを連結される必要がある。
@@ -79,7 +79,7 @@ scope :user_like, -> (user_name) { joins(:user).where('user.name LIKE ?', "%#{us
 
 `[:blank:]`...スペースとタブの空白文字にマッチするブラケット
 
-`stripe`メソッド...文字列先頭と末尾の空白文字をすべて取り除いた文字列を生成し返すメソッド。[reference](https://docs.ruby-lang.org/ja/latest/method/String/i/strip.html)
+`strip`メソッド...文字列先頭と末尾の空白文字をすべて取り除いた文字列を生成し返すメソッド。[reference](https://docs.ruby-lang.org/ja/latest/method/String/i/strip.html)
 
 上記のテクニックを使うことで、検索フォームから"foo bar"という文字列が送られてきた場合、["foo", "bar"]と空白で文字列を区切ることができる
 
@@ -103,14 +103,14 @@ class SearchForm
  def search
    scope = Post.distinct
    scope = split_post_body.map{ |word| scope.post_like(word) }.inject{ |result, scp| result.or(scp) } if post_body.present?
-   scope = scope.comment_like(comment_body) if comment.body.present?
-   scope = scope.user_like(user_name) if name.present?
+   scope = scope.comment_like(comment_body) if comment_body.present?
+   scope = scope.user_like(user_name) if user_name.present?
    scope
  end
 
  private
  def split_post_body
-   post_body.stripe.split(/[[:blank:]]+/)
+   post_body.strip.split(/[[:blank:]]+/)
  end
 end
 ```
@@ -141,6 +141,7 @@ WHERE ("posts"."body" = "foo" OR "posts"."content" = "bar")
 class ApplicationController < ActionController::Base
  before_action :set_search_form
 
+private
  def set_search_form
    @search_form = SeachForm.new(search_params)
  end
