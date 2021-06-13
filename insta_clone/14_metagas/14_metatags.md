@@ -252,6 +252,10 @@ meta:
 
 上記の設定をすることで、`application.html.slim`に`display_meta_tags`メソッドを記述することができるようになる
 
+#### 詰まったポイント
+
+image_pathに指定した画像の置き場所は`public/images/`配下にすること。
+
 ```
 # application.html.slim
 
@@ -277,11 +281,15 @@ html
 - set_meta_tags title: "ユーザー一覧ページ"
 ```
 
+[![Image from Gyazo](https://i.gyazo.com/06c579807241661039bf627ee1a787ba.png)](https://gyazo.com/06c579807241661039bf627ee1a787ba)
+
 ```
 # users/new
 
 - set_meta_tags title: "ユーザー登録ページ"
 ```
+
+[![Image from Gyazo](https://i.gyazo.com/201fe03950bc4511b40c9584394ce104.png)](https://gyazo.com/201fe03950bc4511b40c9584394ce104)
 
 ```
 # users/show
@@ -289,11 +297,15 @@ html
 - set_meta_tags title: "ユーザー詳細ページ"
 ```
 
+[![Image from Gyazo](https://i.gyazo.com/4298052ac59efddc0a578e8f476022cc.png)](https://gyazo.com/4298052ac59efddc0a578e8f476022cc)
+
 ```
 # user_sessions/new
 
 - set_meta_tags title: "ログインページ"
 ```
+
+[![Image from Gyazo](https://i.gyazo.com/b45fac842b5c42f71c375f3d4fa19217.png)](https://gyazo.com/b45fac842b5c42f71c375f3d4fa19217)
 
 ```
 # posts/show
@@ -301,6 +313,10 @@ html
 - set_meta_tags title: "投稿詳細ページ", description: @post.body,
                og: { image: "#{@post.images.first.url}"}
 ```
+
+[![Image from Gyazo](https://i.gyazo.com/4f8e819a8b9aa97c7d748cf4d9c416ee.png)](https://gyazo.com/4f8e819a8b9aa97c7d748cf4d9c416ee)
+
+<br>
 
 `display_meta_tags`メソッドは`=`
 
@@ -341,3 +357,15 @@ html
 [メタキーワード](https://sem-journal.com/seo/meta-keywords/)
 
 [twitter cardについて](https://www.granfairs.com/blog/staff/setting-twitter-cards)
+
+<br>
+
+## Twitter
+
+トップページ
+
+[![Image from Gyazo](https://i.gyazo.com/8b38ffd1b57834179f39a35b9eca4646.png)](https://gyazo.com/8b38ffd1b57834179f39a35b9eca4646)
+
+投稿詳細ページ
+
+[![Image from Gyazo](https://i.gyazo.com/921c4bc0e70b5d939fd43930c6e5eaff.jpg)](https://gyazo.com/921c4bc0e70b5d939fd43930c6e5eaff)
