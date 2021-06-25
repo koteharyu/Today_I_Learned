@@ -251,6 +251,12 @@ current_userがAさんとチャットする場合、すでにcurrent_user.idとA
 
 引数であるusersは、`chatroom_path(Chatroom.chatroom_for_users([current_user, user]))`で表現させる
 
+また、`where(name: name).first`の箇所は`find_or_initiliaze_by(name: name)`で書き換えが可能。find_byはヒットした１件を返す。
+
+`find_or_initialize_by`...返り値がない場合、新規作成を行うがDBへの保存はしない
+
+`find_or_create_by`...返り値がない場合、新規作成とDBへの保存を行う
+
 ### draper導入
 
 `decorator`とは、デザインパターン(オブジェクト指向言語で開発を行うときに、先達がまとめた「よく出会う問題とそれに対する良い設計」のこと)の１つであり、既存のオブジェクトを新しい`Decorator`オブジェクトでラップすることで既存のメソッドやクラスの中身を直接触ることなく、その外側から機能を追加したり書き換えたりできる機能のこと。
@@ -1093,3 +1099,144 @@ end
 
 [疑問点2](####-疑問点2)
 
+<br>
+
+## 追記 2021/6/25
+
+### 疑問点2について
+
+chatrooms_controller内で必要なのは`user_ids`の値である。が、階層的に以下のようになっているため、`dig`メソッドを使い安全(値が存在しない場合にnilを返す)にネストしたハッシュから値を取得しているだけ。
+
+```ruby
+params = {
+  chatroom:
+    user_ids:
+}
+```
+
+なので実質、`params[:chatroom][:user_ids]`を行っている。
+
+## blank?について
+
+`if params.dig(:chatroom, :user_ids).reject(&:blank?).blank?`について、current_user.id = 11, チャットルームに選択したuser.id = 9, 10, 12である場合
+返り値は以下のようになる
+
+```ruby
+params.dig(:chatroom, :user_ids)
+#=> ["", "12", "10", "9"]
+
+params.dig(:chatroom, :user_ids).reject(&:blank?)
+#=> ["12", "10", "9"]
+
+params.dig(:chatroom, :user_ids).reject(&:blank?).blank?
+#=> false
+
+users = User.where(id: params.dig(:chatroom, :user_ids)) + [current_user]
+users
+#=> ["9", "10", "12", "11"]
+```
+
+## chatrooms_controllerについて
+
+実装例は以下のようだが
+
+```ruby
+def create
+  users = User.where(id: params.dig(:chatroom, :user_ids)) + [current_user]
+  @chatroom = current_user.chatroom_for_users(users)
+  @messages = @chatroom.messages.order(created_at: :desc).limi(100).reverse
+  @chatroom_user = current_user.chatroom_users.find_by(chatroom_id: @chatroom.id)
+  redirect_to chatroom_path(@chatroom)
+end
+```
+
+`@messages`, `@chatroom_user`はcreateアクション内で定義する必要がないため、以下のように省略して記述できる
+
+```ruby
+def create
+  users = User.where(id: params.dig(:chatroom, :user_ids)) + [current_user]
+  @chatroom = current_user.chatroom_for_users(users)
+  redirect_to chatroom_path(@chatroom)
+end
+```
+
+なぜなら、showアクションとchatrooms/show.html.slimで以下のようにchatroomに紐づくmessagesを取得しているから
+
+```ruby
+def show
+  @chatroom = current_user.chatrooms.find(params[:id])
+end
+```
+
+```ruby
+= render @chatroom.messagess
+```
+
+### リファクタリング
+
+パターン１
+
+```ruby
+def show
+  @chatroom = current_user.chatrooms.find(params[:id])
+  @messages = @chatroom.messages.order(created_at: :desc).limit(100).reverse
+end
+```
+
+```ruby
+= render @messagess
+```
+
+<br>
+
+パターン２
+
+```ruby
+# models/message
+
+scope :recent, -> (count) { order(created_at: :desc).limit(count).reverse}
+```
+
+```ruby
+def show
+  @chatroom = current_user.chatrooms.find(params[:id])
+  @messages = @chatroom.messages.recent(100)
+end
+```
+
+```ruby
+= render @messagess
+```
+
+パターン２の方がかっこいいのでこっちを採用！
+
+<br>
+
+## collection_check_boxesのincldue_hidden: false
+
+collection_check_boxesを使う際、デフォルトだと配列の先頭に空の値が含まれる。それは空の値をもつ`input`属性が含まれるから。
+
+[![Image from Gyazo](https://i.gyazo.com/b9c0030df9c161c063cd2cd1163a628c.png)](https://gyazo.com/b9c0030df9c161c063cd2cd1163a628c)
+
+<br>
+
+`include_hidden: false`オプションを追加すれば以下のようなHTMLを生成するため、空の値を配列に含めないようにできる
+
+```ruby
+= f.collection_check_boxes :user_ids, current_user.following, :id, :name, include_hidden: false do |b|
+  .mb-3
+    = b.label do
+      = b.check_box class: 'mr-1'
+      = image_tag b.object.avatar.url, size: '40x40', class: 'rounded-circle mr-1'
+      = b.text
+```
+
+[![Image from Gyazo](https://i.gyazo.com/6bbe6e0668c96f9de33a672c914a23e2.png)](https://gyazo.com/6bbe6e0668c96f9de33a672c914a23e2)
+
+<br>
+
+今回のケースでは、chatrooms_controller内のprivateメソッドである`require_user_ids`にて不正なパラメーターを防ぐに加えて、デフォルトで空の値を含めないようにすることで、より堅牢なプログラムを構築できるのではないだろうか。
+
+だが、普通のhas_many, throughのフォームに置いて安易に`include_hidden: false`オプションは付けない方が良い。なぜなら、紐付けを削除する際のパラメーターでもあるので、紐付けの削除ができなくなるため。
+
+具体例としては、ユーザーと趣味がhas_many throughの関係の中、プロフィール編集画面から趣味を複数チェックボックスから選択させるフォームの場合がある。
