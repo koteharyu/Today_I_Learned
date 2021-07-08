@@ -6,6 +6,8 @@
 
 ActiveModel::Serializerを使えば、以下のように、簡単にJSONデータを扱うことができる
 
+`$ rails g serializer MesssageSerializer`
+
 ```ruby
 class MessageSerializer < ActiveMiode::Serializer
   attributes :content, :author, :role
@@ -17,8 +19,16 @@ end
 
 # 呼び出し方法
 
-render json: @message
+render json: @message, serializer: MessageSerializer
+
+# 複数のデータを出力する際
+
+render json: @messages, each_serilizer: MessageSerializer
 ```
+
+`serilizer`
+
+`each_serializer`
 
 基本的な使い方は、ActiveMiode::Serializerを継承して使いたいattributesを指定する方法
 
@@ -63,3 +73,5 @@ ActiveModel::ArraySerializer.new(
 ```
 
 serializer内で、`options[:message]`で呼び出すことができる
+
+[参考記事](https://qiita.com/kazusa-s/items/35d849cfd2c485cb1705)
