@@ -120,4 +120,4 @@ hasihfi44068048w4--w39uwoeihgusagyfyasfy
 
 以上がJWTの大まかな機能や概要について
 
-次の記事で、実装例についてまとめていく[]()
+[次の記事で、実装例についてまとめていく](https://github.com/koteharyu/TIL/blob/main/rails_api_vue/jwt_detail.md)
