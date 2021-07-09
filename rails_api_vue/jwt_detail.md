@@ -1,6 +1,6 @@
 # JWTの実装例
 
-[この記事の続き~]()
+[この記事の続き~](https://github.com/koteharyu/TIL/blob/main/rails_api_vue/jwt.md)
 
 ## Gemのインストール
 
@@ -10,7 +10,7 @@ gem 'jwt'
 gem 'bcrypt', '~> 3.1.7'　# コメントアウト
 ```
 
-`active_model_serializers`...レスポンスを簡単に、かつ綺麗にJSON形式に整形してくれるgem。より詳細には[こちらで...]()
+`active_model_serializers`...レスポンスを簡単に、かつ綺麗にJSON形式に整形してくれるgem。
 
 `bcrypt`...パスワードのハッシュ化を行うgem。使用するには`password_digest`カラムと、`has_secure_password`メソッドが必要。
 
@@ -55,29 +55,29 @@ class ApplicationController < ActionController::Base
   class AuthenticationError < StandardError; end
 
   rescue_from ActiveRecord::RecordInvalid, with: :render_422
-  rescue_from AuthenticationError, wiht: :not_authenticated
-
-  def current_user
-    @current_user ||= Jwt::UserAuthenticator.call(request.headers)
-  end
+  rescue_from AuthenticationError, with: :not_authenticated
 
   def authenticate
     raise AuthenticationError unless current_user
   end
 
+  def current_user
+    @current_user ||= Jwt::UserAuthenticator.call(request.headers)
+  end
+
   private
 
   def render_422(exception)
-    render json: { error: { messages: expection.record.errors.full_massegas } }, status: :unprocessable_entity
+    render json: { error: { messages: exception.record.errors.full_messages } }, status: :unprocessable_entity
   end
 
   def not_authenticated
-    render json: { error: { messages: ['please login'] } }, status: :unauthorized
+    render json: { error: { messages: ['ログインしてください'] } }, status: :unauthorized
   end
 end
 ```
 
-applications_controllerには、エラーに関する処理を記載する
+application_controllerには、エラーに関する処理を記載する
 
 `protect_from_forgery with:`メソッド...自動でCSRF対策を行うための設定。
 
@@ -97,17 +97,21 @@ applications_controllerには、エラーに関する処理を記載する
 
 `render_422`, `not_anthenticated`...JSON形式でエラーメッセージとstatusを返すメソッド
 
-## Api::SessionsController
+`:unprocessable_entity`...バリデーションエラー時に返すステータスコード
 
-続いて、先ほど編集したApplicationControllerを継承させたApi::SessionsControllerを定義していく
+`:unauthorized`...認証が必要な場合に返すステータスコード
+
+## Api::SessionController
+
+続いて、先ほど編集したApplicationControllerを継承させたApi::SessionControllerを定義していく
 
 ```ruby
-class Api::SessionsController < ApplicationController
+class Api::SessionController < ApplicationController
   def create
     user = User.find_by(email: session_params[:email])
     if user&.authenticate(session_params[:password])
       token = Jwt::TokenProvider.call(user_id: user.id)
-      render json: ActiveModelSerializer::SerializableResource.new(
+      render json: ActiveModelSerializers::SerializableResource.new(
         user,
         serializer: UserSerializer
       ).as_json.deep_merge(user: { token: token} )
@@ -126,7 +130,7 @@ end
 
 `token = Jwt::TokenProvider.call(user_id: user.id)`...TokenPrividerというサービスファイルで定義したcallメソッドを呼び出し、引数であるuser_idを元にトークンを取得する
 
-`ActiveModelSerializer::SerializableResource.new`...新しくserializserインスタンスを作成する。通常は、serializerファイルを作っていればこのように記述する必要がなくなるが、sessionの中身はuserモデルと同じなので、user情報とuserのserializerを引数にとり、その情報を元にserializerインスタンスを作成している。
+`ActiveModelSerializers::SerializableResource.new`...新しくserializserインスタンスを作成する。通常は、serializerファイルを作っていればこのように記述する必要がなくなるが、sessionの中身はuserモデルと同じなので、user情報とuserのserializerを引数にとり、その情報を元にserializerインスタンスを作成している。
 
 `as_json`...作成したserializerの形式をJSON形式に変換させるメソッド
 
@@ -158,14 +162,14 @@ class UserSerializer < ActiveModel::Serializer
 end
 ```
 
-## services/jwt/user_authentication.rb
+## app/services/jwt/user_authenticator.rb
 
 ```ruby
-module Jwt::UserAuthentication
+module Jwt::UserAuthenticator
   extend self
 
   def call(request_headers)
-    @request_headers = requrest_headersss
+    @request_headers = requrest_headers
     begin
       payload, = Jwt::TokenDecryptor.call(token)
       User.find(payload['user_id'])
@@ -197,7 +201,7 @@ end
 `token`メソッド...ヘッダーのauthorizationのtokenのみを取得している。ちなみに、request_headersの中身は、`Authorization: Bearer tokentokentoken...`
 となっているため、tokenだけを取得するように記述している
 
-## services/jwt/token_decryptor.rb
+## app/services/jwt/token_decryptor.rb
 
 ```ruby
 module Jwt::TokenDecryptor
@@ -224,7 +228,7 @@ class InvalidTokenError < StandardError; end
 
 `call`メソッド...復号化のためのメソッド。user_authentication.rbで特定のuserを探すために暗号化されたトークンを復号化している
 
-## services/jwt/token_provider.rb
+## app/services/jwt/token_provider.rb
 
 ```ruby
 module Jwt::TokenProvider
