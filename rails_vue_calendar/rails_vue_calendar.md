@@ -261,9 +261,7 @@ export default {
 
 `--save`...package.jsonのdependenciesに登録させるオプション。npm5.0以降だとデフォルトでこのオプションが付くようになったとのこと
 
-> git にコミットする際、パッケージをインストールしているフォルダ node_modules は .gitignore によって除外されます。
-違う開発環境を git からクローンして構築する場合、package.json を元に復元します。
-よって、同じパッケージ環境を簡単に構築することができます。
+> git にコミットする際、パッケージをインストールしているフォルダ node_modules は .gitignore によって除外されます。違う開発環境を git からクローンして構築する場合、package.json を元に復元します。よって、同じパッケージ環境を簡単に構築することができます。
 
 ```vue
 <template>
