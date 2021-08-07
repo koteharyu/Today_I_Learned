@@ -11,7 +11,7 @@ $ bundle exec rails active_storage:install
 $ bundle exec rails db:migare
 ```
 
-migrateすることで、`active_storage_blobs`テーブルと`active_storage_attachment`テーブルが作成される
+`rails db:migrate`することで、`active_storage_blobs`テーブルと`active_storage_attachment`テーブルが作成される
 
 `active_storage_blobs`...実際にアップロードしたファイルが保存されるテーブル
 
@@ -36,7 +36,7 @@ end
 ```gemfile
 gem 'active_storage_base64'
 ```
-ApplicationRecordに対してActiveStorageSupport::SupportForBase64をincludeする事で、ApplicationRecordを継承しているモデルにもBase64を適用されるようにしている
+ApplicationRecordに対してActiveStorageSupport::SupportForBase64をincludeする事で、ApplicationRecordを継承しているモデル(User, Micropost)にもBase64を適用されるようにしている
 
 ```rb
 # models/application.rb
@@ -45,6 +45,28 @@ class ApplicationRecord < ActiveRecord::Base
   self.abstract_class = true
 end
 ```
+
+#### self.abstract_class = true
+
+`self.abstract_class = true`...ApplicationRecordを継承しているクラスをモデルとして作成すると、Railsはそのクラス名に対応したデータベースのテーブルを自動的に探そうとする。対応するデータベースのテーブルを用意しない場合にこの記述をする必要がある。(デフォルトで記述されている)。例としてAnimalクラスを継承するDogクラスを作成する場合、Animalクラスにこの記述をする必要がある
+
+関係性
+
+```rb
+class ApplicationRecord < ActiveRecord::Base
+  self.abstract_class = true
+end
+
+class Animal < ApplicationRecord
+  self.abstract_class = true
+end
+
+class Dog < Animal
+
+end
+```
+
+<br>
 
 ```rb
 class User < ApplicationRecord
@@ -84,6 +106,8 @@ pry(#<Api::Me::AccountsController>)> params[:user][:avatar][:data]
 
 最後まで追うのが面倒であったが、注目ポイントは`"data"=>"data:image/png;base64`ここ。このフォーマットでアップロードするデータが格納される。
 
+<br>
+
 ## UserSerializerの編集
 
 次に`UserSerializer`を編集し、画像が設定されていればその画像のURLを返し、設定されていなければplaceholderの画像のURLを返す`avatar_url`という属性を追加する
@@ -105,3 +129,4 @@ end
 `rails_blob_path`...アップロードしたファイルにリンクを貼るメソッド。コントローラーやビューのコンテキストの外(バックグランドジョブやcronジョブなど)からリンクを作成することができる。
 
 `user.avarar_url`...実際にvueファイル内で画像を表示させるときに使う。
+
