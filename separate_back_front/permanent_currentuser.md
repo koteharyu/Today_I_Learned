@@ -79,3 +79,11 @@ new Vue({
 ```
 
 この記述を加えることで、更新後もcurrentUserに値がセットされたまま処理を続行することができるようになった
+
+## 追記
+
+## LocalStorage
+
+[![Image from Gyazo](https://i.gyazo.com/0b6209910e48b0e412c0b6964fc88dce.png)](https://gyazo.com/0b6209910e48b0e412c0b6964fc88dce)
+
+devツールの`Application > Storage > LocalStorage`から確認できるよ
