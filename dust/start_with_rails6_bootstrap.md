@@ -99,12 +99,12 @@ config.time_zone = 'Tokyo'
 config.active_record.default_timezone = :local
 ```
 
-## bootstrap
+## bootstrap4
 
 bootstrapを適用するために必要なライブラリをインストール
 
 ```
-$ yarn add jquery bootstrap @popperjs/core
+yarn add jquery bootstrap@4.5.3 popper.js
 ```
 
 bootstrap5の場合`@popperjs/core`が必要
@@ -129,22 +129,29 @@ environment.plugins.prepend(
 module.exports = environment
 ```
 
-### css
+## Bootstrapのstyleをimport
 
-`app/assets/stylesheets/application.scss`へとリネームをし、以下のように修正
+`app/javascript/stylesheets/application.scss`を作成し
 
-```rb
- *= require bootstrap/dist/css/bootstrap.min.css
- *= require_tree .
- *= require_self
+```scss
+@import '~bootstrap/scss/bootstrap';
 ```
 
-### application.js
+## application.js
 
-`app/javascript/packs/application.js`へ以下の記述を追記
+`app/javascript/packs/application.js`を
 
 ```js
-import 'bootstrap/dist/js/bootstrap.min.js'
+import 'bootstrap';
+import '../stylesheets/application';
+```
+
+## stylesheet_pack_tag
+
+`app/views/layouts/application.html`に
+
+```slim
+= stylesheet_pack_tag 'application'
 ```
 
 ## font awesome
@@ -155,25 +162,21 @@ import 'bootstrap/dist/js/bootstrap.min.js'
 $ yarn add @fortawesome/fontawesome-free
 ```
 
-### application.js
+### application.scss
 
-`app/javascript/packs/application.js`へ以下の記述を追記
+`app/javascript/stylesheets/application.scss`へ以下の記述を追記
 
 ```js
-import '@fortawesome/fontawesome-free/js/all'
+@import '~bootstrap/scss/bootstrap';
+@import '~@fortawesome/fontawesome-free/scss/fontawesome';
 ```
 
-### application.sccs
+### application.js
 
 以下を追記
 
 ```
-$fa-font-path: '@fortawesome/fontawesome-free/webfonts';
-@import '@fortawesome/fontawesome-free/scss/fontawesome';
-@import '@fortawesome/fontawesome-free/scss/solid';
-@import '@fortawesome/fontawesome-free/scss/regular';
-@import '@fortawesome/fontawesome-free/scss/brands';
-@import '@fortawesome/fontawesome-free/scss/v4-shims';
+import '@fortawesome/fontawesome-free/js/all';
 ```
 
 ### how to
